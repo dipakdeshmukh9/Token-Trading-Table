@@ -57,15 +57,15 @@ export const useTokens = () => {
     () => ({
       byCategory: tokens.byCategory,
       allTokens: tokens.allTokens,
-      sortConfig: tokens.sortConfig,
+      sortConfigByCategory: tokens.sortConfigByCategory,
       loading: tokens.loading,
       error: tokens.error,
       searchQuery: tokens.searchQuery,
       selectedCategory: tokens.selectedCategory,
       updatePrice: (tokenId: string, price: number, change: number) =>
         dispatch(updateTokenPrice({ tokenId, price, priceChange24h: change })),
-      setSortConfig: (config: SortConfig) =>
-        dispatch(setSortConfig(config)),
+      setSortConfigForCategory: (category: TokenCategory, config: SortConfig) =>
+        dispatch(setSortConfig({ category, config })),
       setSearchQuery: (query: string) => dispatch(setSearchQuery(query)),
       setCategory: (category: TokenCategory) =>
         dispatch(setSelectedCategory(category)),

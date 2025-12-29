@@ -3,6 +3,13 @@
 :root {
   --background: #0b0e11;
   --foreground: rgba(255, 255, 255, 0.92);
+  color-scheme: dark;
+}
+
+/* Optimize critical rendering path */
+html {
+  font-size: 16px;
+  scroll-behavior: smooth;
 }
 
 html,
@@ -10,19 +17,93 @@ body {
   background-color: var(--background);
   color: var(--foreground);
   min-height: 100%;
+  margin: 0;
+  padding: 0;
 }
 
 body {
   font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont,
     "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  font-feature-settings: "kern" 1;
+  text-rendering: optimizeLegibility;
 }
+
+/* Prevent layout shift for scrollbars */
+html {
+  overflow-y: scroll;
+}
+
+/* Image optimization */
+img {
+  display: block;
+  max-width: 100%;
+  height: auto;
+}
+
+/* Reduce motion for users who prefer it */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Scrollbar Styling */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.02);
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 4px;
+  transition: background 0.2s ease;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.25);
+}
+
+/* Firefox scrollbar */
+* {
+  scrollbar-color: rgba(255, 255, 255, 0.15) rgba(255, 255, 255, 0.02);
+  scrollbar-width: thin;
+}
+
 @keyframes shimmer {
   0% {
     background-position: -1000px 0;
   }
   100% {
     background-position: 1000px 0;
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
   }
 }
 
@@ -36,3 +117,24 @@ body {
   background-size: 1000px 100%;
   animation: shimmer 1.4s ease infinite;
 }
+
+/* Will-change hint for animated elements */
+.animate-pulse {
+  will-change: opacity;
+}
+
+/* Optimize transforms over opacity for better performance */
+.smooth-transition {
+  transition: transform 0.2s ease-out, color 0.2s ease-out;
+}
+
+/* Contain layout for performance */
+.token-card {
+  contain: layout style paint;
+}
+
+/* Content visibility for off-screen elements */
+.virtualized-item {
+  content-visibility: auto;
+}
+

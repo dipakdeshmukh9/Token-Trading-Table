@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState, memo } from "react";
 import { useUI, useWatchlist } from "@/app/hooks/useTokens";
-import { TrendingUp, TrendingDown, Star } from "lucide-react";
+import { Star } from "lucide-react";
 import { Badge } from "@/app/components/ui/Badge";
 import { Button } from "@/app/components/ui/Button";
 import { Tooltip } from "@/app/components/ui/Tooltip";
@@ -22,10 +22,6 @@ interface TokenCardProps {
   onBuy?: () => void;
 }
 
-/**
- * TokenCard component - memoized for performance
- * Displays token information with price updates and interactions
- */
 const TokenCard = memo(
   ({
     id,
@@ -47,30 +43,24 @@ const TokenCard = memo(
     const [flash, setFlash] = useState<"up" | "down" | null>(null);
     const [priceFlash, setPriceFlash] = useState<"up" | "down" | null>(null);
 
-    // Flash on market cap change
     useEffect(() => {
       if (mc > prevMc.current) {
         setFlash("up");
       } else if (mc < prevMc.current) {
         setFlash("down");
       }
-
       prevMc.current = mc;
-
       const t = setTimeout(() => setFlash(null), 500);
       return () => clearTimeout(t);
     }, [mc]);
 
-    // Flash on price change
     useEffect(() => {
       if (price > prevPrice.current) {
         setPriceFlash("up");
       } else if (price < prevPrice.current) {
         setPriceFlash("down");
       }
-
       prevPrice.current = price;
-
       const t = setTimeout(() => setPriceFlash(null), 500);
       return () => clearTimeout(t);
     }, [price]);
@@ -79,133 +69,161 @@ const TokenCard = memo(
     const priceIsPositive = priceChange24h >= 0;
 
     const handleBuy = () => {
-      if (onBuy) {
-        onBuy();
-      } else {
-        openBuyModal(id);
-      }
+      openBuyModal(id);
     };
 
     return (
       <div
         className={clsx(
-          "group relative flex gap-3 p-3 rounded-lg border transition-all duration-300 cursor-pointer hover:bg-white/[0.06]",
-          "border-white/[0.06] bg-white/[0.02]",
-          flash === "up" && "border-green-500/40 bg-green-500/10",
-          flash === "down" && "border-red-500/40 bg-red-500/10"
+          "relative flex flex-col p-2.5 rounded-lg border transition-colors duration-150 cursor-pointer overflow-visible",
+          "border-white/6 bg-white/2 hover:bg-white/4 hover:border-white/10",
+          "h-24",
+          flash === "up" && "border-green-500/30 bg-green-500/8",
+          flash === "down" && "border-red-500/30 bg-red-500/8"
         )}
         onClick={() => openDetailsModal(id)}
       >
-        {/* Left Icon */}
-        <div className="w-10 h-10 rounded-md bg-gradient-to-br from-white/20 to-white/5 flex items-center justify-center text-sm font-bold flex-shrink-0 flex items-center justify-center">
-          {symbol[0]}
-        </div>
-
-        {/* Main Content */}
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2 mb-2">
-            <Tooltip content={`${name} (${symbol})`}>
-              <span className="text-[14px] font-medium truncate">{name}</span>
-            </Tooltip>
-            <span className="text-[12px] text-white/50">{symbol}</span>
-          </div>
-
-          {/* Stats Row */}
-          <div className="flex items-center gap-3 text-[12px] text-white/60 flex-wrap mb-2">
-            <div className="flex items-center gap-1">
-              <span className="text-white/40">MC</span>
-              <span className={priceFlash === "up" ? "text-green-400" : priceFlash === "down" ? "text-red-400" : ""}>
-                ${formatNumber(mc / 1000000, 2)}M
-              </span>
+        {/* TOP: Icon + Name/Symbol + Star */}
+        <div className="flex items-start justify-between gap-1.5 mb-1">
+          <div className="flex items-start gap-1.5 min-w-0 flex-1">
+            <div className="w-7 h-7 rounded-md bg-linear-to-br from-white/12 to-white/4 flex items-center justify-center text-[10px] font-bold shrink-0 text-white/70">
+              {symbol[0]}
             </div>
-            <div className="flex items-center gap-1">
-              <span className="text-white/40">V</span>
-              <span>${formatNumber(volume24h / 1000, 0)}K</span>
-            </div>
-            <div className="flex items-center gap-1">
-              <span className="text-white/40">TX</span>
-              <span>{txCount}</span>
+            <div className="min-w-0 flex-1">
+              <Tooltip content={`${name} (${symbol})`}>
+                <div className="text-xs font-semibold text-white truncate leading-tight">
+                  {name}
+                </div>
+              </Tooltip>
+              <div className="text-[9px] text-white/40 font-medium leading-tight">{symbol}</div>
             </div>
           </div>
-
-          {/* Price and Change Badges */}
-          <div className="flex items-center gap-2 flex-wrap">
-            <Badge
-              variant={priceIsPositive ? "success" : "danger"}
-              size="sm"
-              className={priceFlash === "up" ? "scale-110" : priceFlash === "down" ? "scale-95" : ""}
-            >
-              {formatPercent(priceChange24h)}
-            </Badge>
-            <span className="text-[11px] text-white/40">
-              ${formatPrice(price, 6)}
-            </span>
-          </div>
-        </div>
-
-        {/* Right Actions - Visible on Hover */}
-        <div className="absolute right-3 top-3 hidden group-hover:flex gap-2 items-center flex-shrink-0">
-          <Tooltip content="View details">
-            <Button
-              size="xs"
-              variant="secondary"
-              onClick={(e) => {
-                e.stopPropagation();
-                openDetailsModal(id);
-              }}
-            >
-              Details
-            </Button>
-          </Tooltip>
-
-          <Tooltip content="Buy token">
-            <Button
-              size="xs"
-              variant="primary"
-              onClick={(e) => {
-                e.stopPropagation();
-                handleBuy();
-              }}
-            >
-              Buy
-            </Button>
-          </Tooltip>
-
           <Tooltip content={watched ? "Remove from watchlist" : "Add to watchlist"}>
-            <Button
-              size="xs"
-              variant={watched ? "primary" : "secondary"}
+            <button
               onClick={(e) => {
                 e.stopPropagation();
                 toggle(id);
               }}
-              className="px-2"
+              className={clsx(
+                "shrink-0 p-0.5 rounded transition-colors",
+                watched && "text-yellow-400"
+              )}
             >
               <Star
-                size={14}
+                size={12}
                 className={watched ? "fill-current" : ""}
+                strokeWidth={watched ? 0 : 2}
               />
-            </Button>
+            </button>
           </Tooltip>
+        </div>
+
+        {/* MIDDLE: Stats Grid - MC, Vol, TX */}
+        <div className="grid grid-cols-3 gap-1.5 mb-1 text-[9px]">
+          <div className="flex flex-col min-w-0">
+            <span className="text-white/25 font-medium leading-tight">MC</span>
+            <span
+              className={clsx(
+                "font-semibold text-[10px] leading-tight truncate",
+                priceFlash === "up"
+                  ? "text-green-400"
+                  : priceFlash === "down"
+                    ? "text-red-400"
+                    : "text-white/70"
+              )}
+            >
+              ${formatNumber(mc / 1000000, 2)}M
+            </span>
+          </div>
+          <div className="flex flex-col min-w-0">
+            <span className="text-white/25 font-medium leading-tight">Vol</span>
+            <span className="font-semibold text-[10px] text-white/70 leading-tight truncate">
+              ${formatNumber(volume24h / 1000000, 1)}M
+            </span>
+          </div>
+          <div className="flex flex-col min-w-0">
+            <span className="text-white/25 font-medium leading-tight">TX</span>
+            <span className="font-semibold text-[10px] text-white/70 leading-tight truncate">
+              {formatNumber(txCount / 1000, 1)}K
+            </span>
+          </div>
+        </div>
+
+        {/* BOTTOM: Price + Badge + Buttons (ONE LINE) */}
+        <div className="flex items-center justify-between gap-1.5 shrink-0">
+          <div className="flex items-center gap-0.5 min-w-0 flex-1">
+            <span className="text-[9px] font-mono text-white/60 shrink-0 truncate">
+              ${formatPrice(price, 6)}
+            </span>
+            {/* Percentage Badge Box */}
+            <div className={clsx(
+              "rounded-lg px-1.5 py-0.5 flex items-center justify-center transition-colors shrink-0",
+              priceIsPositive 
+                ? "bg-green-500/12 border border-green-500/20" 
+                : "bg-red-500/12 border border-red-500/20"
+            )}>
+              <Badge
+                variant={priceIsPositive ? "success" : "danger"}
+                size="sm"
+                className={clsx(
+                  "transition-transform duration-200 shrink-0 border-0",
+                  priceFlash === "up" && "scale-105",
+                  priceFlash === "down" && "scale-95"
+                )}
+              >
+                {formatPercent(priceChange24h)}
+              </Badge>
+            </div>
+          </div>
+          <div className="flex gap-1 shrink-0">
+            {/* Buy Button Box */}
+            <div className="rounded-lg bg-white/4 border border-white/6 hover:bg-white/6 hover:border-white/10 transition-colors p-0.5 flex items-center justify-center">
+              <Tooltip content="Buy token">
+                <Button
+                  size="xs"
+                  variant="primary"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleBuy();
+                  }}
+                  className="text-[10px] px-2 py-0.5 font-semibold"
+                >
+                  Buy
+                </Button>
+              </Tooltip>
+            </div>
+            {/* Info Button Box */}
+            <div className="rounded-lg bg-white/4 border border-white/6 hover:bg-white/6 hover:border-white/10 transition-colors p-0.5 flex items-center justify-center">
+              <Tooltip content="View details">
+                <Button
+                  size="xs"
+                  variant="secondary"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    openDetailsModal(id);
+                  }}
+                  className="text-[10px] px-2 py-0.5"
+                >
+                  Info
+                </Button>
+              </Tooltip>
+            </div>
+          </div>
         </div>
       </div>
     );
   },
-  (prev, next) => {
-    // Custom comparison for memo - only re-render if data changes significantly
-    return (
-      prev.id === next.id &&
-      prev.name === next.name &&
-      prev.symbol === next.symbol &&
-      prev.mc === next.mc &&
-      prev.price === next.price &&
-      prev.priceChange24h === next.priceChange24h &&
-      prev.volume24h === next.volume24h &&
-      prev.txCount === next.txCount &&
-      prev.category === next.category &&
-      prev.onBuy === next.onBuy
-    );
-  }
+  (prev, next) =>
+    prev.id === next.id &&
+    prev.name === next.name &&
+    prev.symbol === next.symbol &&
+    prev.mc === next.mc &&
+    prev.price === next.price &&
+    prev.priceChange24h === next.priceChange24h &&
+    prev.volume24h === next.volume24h &&
+    prev.txCount === next.txCount &&
+    prev.category === next.category &&
+    prev.onBuy === next.onBuy
 );
 
 TokenCard.displayName = "TokenCard";

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useCallback } from "react";
+import { useEffect, useMemo, useCallback, memo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useDispatch } from "react-redux";
 import { fetchTokens, getWebSocket } from "@/app/lib/fakeApi";
@@ -26,11 +26,15 @@ interface PulseColumnProps {
 
 /**
  * PulseColumn - displays a list of tokens in a category with sorting, filtering, and real-time updates
+ * Memoized for performance optimization
  */
-export default function PulseColumn({ title, category }: PulseColumnProps) {
+const PulseColumn = memo(function PulseColumn({ title, category }: PulseColumnProps) {
   const dispatch = useDispatch<AppDispatch>();
-  const { sortConfig, setSortConfig } = useTokens();
+  const { sortConfigByCategory, setSortConfigForCategory } = useTokens();
   const { modals, closeBuyModal } = useUI();
+
+  // Get sort config for this specific category
+  const sortConfig = sortConfigByCategory[category];
 
   // Fetch tokens for this category
   const { data, isLoading, isError, refetch } = useQuery<Token[], Error>({
@@ -93,19 +97,19 @@ export default function PulseColumn({ title, category }: PulseColumnProps) {
     (field: string) => {
       if (sortConfig.field === field) {
         // Toggle order
-        setSortConfig({
+        setSortConfigForCategory(category, {
           field: sortConfig.field,
           order: sortConfig.order === "asc" ? "desc" : "asc",
         });
       } else {
         // Change field, default to desc
-        setSortConfig({
+        setSortConfigForCategory(category, {
           field: field as any,
           order: "desc",
         });
       }
     },
-    [sortConfig, setSortConfig]
+    [sortConfig, setSortConfigForCategory, category]
   );
 
   // Get sort icon
@@ -122,18 +126,19 @@ export default function PulseColumn({ title, category }: PulseColumnProps) {
 
   return (
     <>
-      <div className="flex-1 rounded-xl border border-white/[0.06] bg-white/[0.02] flex flex-col">
-        {/* Header */}
-        <div className="flex items-center justify-between px-4 py-3 border-b border-white/[0.06]">
-          <h2 className="text-[14px] font-medium">{title}</h2>
+      {/* Column Container - Fixed height, full column space */}
+      <div className="flex flex-col rounded-xl border border-white/6 bg-white/2 overflow-hidden h-full">
+        {/* Sticky Header - Always visible at top */}
+        <div className="sticky top-0 z-10 flex items-center justify-between px-3 py-2.5 border-b border-white/6 bg-white/2 backdrop-blur-sm flex-shrink-0">
+          <h2 className="text-xs font-semibold text-white truncate">{title}</h2>
 
-          {/* Sort Controls */}
-          <div className="flex items-center gap-2">
+          {/* Sort Controls - Compact */}
+          <div className="flex items-center gap-0.5 flex-shrink-0 ml-1">
             <Button
               size="xs"
               variant={sortConfig.field === "mc" ? "secondary" : "ghost"}
               onClick={() => handleSort("mc")}
-              className="gap-1"
+              className="gap-0.5 text-xs font-medium px-1.5 py-0.5 whitespace-nowrap"
             >
               MC {getSortIcon("mc")}
             </Button>
@@ -142,7 +147,7 @@ export default function PulseColumn({ title, category }: PulseColumnProps) {
               size="xs"
               variant={sortConfig.field === "name" ? "secondary" : "ghost"}
               onClick={() => handleSort("name")}
-              className="gap-1"
+              className="gap-0.5 text-xs font-medium px-1.5 py-0.5 whitespace-nowrap"
             >
               Name {getSortIcon("name")}
             </Button>
@@ -151,15 +156,15 @@ export default function PulseColumn({ title, category }: PulseColumnProps) {
               size="xs"
               variant={sortConfig.field === "price" ? "secondary" : "ghost"}
               onClick={() => handleSort("price")}
-              className="gap-1"
+              className="gap-0.5 text-xs font-medium px-1.5 py-0.5 whitespace-nowrap"
             >
               Price {getSortIcon("price")}
             </Button>
           </div>
         </div>
 
-        {/* Body */}
-        <div className="p-3 space-y-2 flex-1 overflow-y-auto">
+        {/* Scrollable Cards Container - Fills remaining space */}
+        <div className="flex-1 overflow-y-auto px-2.5 py-2 space-y-2">
           {isLoading ? (
             <>
               <SkeletonTokenCard />
@@ -168,8 +173,8 @@ export default function PulseColumn({ title, category }: PulseColumnProps) {
               <SkeletonTokenCard />
             </>
           ) : isError ? (
-            <div className="py-10 text-center">
-              <p className="text-sm text-red-400 mb-3">
+            <div className="flex items-center justify-center h-32 flex-col">
+              <p className="text-sm text-red-400/80 mb-3 font-medium">
                 Failed to load tokens
               </p>
               <Button size="sm" variant="secondary" onClick={() => refetch()}>
@@ -177,7 +182,7 @@ export default function PulseColumn({ title, category }: PulseColumnProps) {
               </Button>
             </div>
           ) : !sortedData || sortedData.length === 0 ? (
-            <div className="py-10 text-center text-sm text-white/50">
+            <div className="flex items-center justify-center h-32 text-sm text-white/40 font-medium">
               No tokens available
             </div>
           ) : (
@@ -208,4 +213,11 @@ export default function PulseColumn({ title, category }: PulseColumnProps) {
       )}
     </>
   );
-}
+}, (prevProps, nextProps) =>
+  prevProps.title === nextProps.title &&
+  prevProps.category === nextProps.category
+);
+
+PulseColumn.displayName = "PulseColumn";
+
+export default PulseColumn;

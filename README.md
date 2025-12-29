@@ -2,6 +2,15 @@
 
 A pixel-perfect, high-performance token discovery and trading platform built with modern web technologies. Features real-time price updates, advanced sorting/filtering, and a responsive design that works seamlessly from mobile to desktop.
 
+## 📚 Documentation
+
+**Complete guides for implementation and deployment:**
+- [Implementation Summary](./IMPLEMENTATION_SUMMARY.md) - Overview of all improvements
+- [Deployment Guide](./DEPLOYMENT.md) - Production deployment instructions
+- [Performance Guide](./PERFORMANCE.md) - Lighthouse optimization details
+- [Pixel-Perfect Guide](./PIXEL_PERFECT.md) - UI specification & visual regression
+- [Git Setup Guide](./GIT_SETUP.md) - GitHub setup with clean commits
+
 ## 🎯 Features
 
 ### Core Features
@@ -37,18 +46,18 @@ A pixel-perfect, high-performance token discovery and trading platform built wit
 
 ## 🛠️ Tech Stack
 
-- **Framework**: Next.js 16.1.1 with App Router
-- **Language**: TypeScript (strict mode)
+- **Framework**: Next.js 15.1.2 with App Router
+- **Runtime**: React 18.3.1 with TypeScript 5
 - **Styling**: Tailwind CSS 4 with custom utilities
 - **State Management**: 
-  - Redux Toolkit for complex state
-  - React Query for data fetching
+  - Redux Toolkit 2.11.2 for complex state
+  - React Query 5.90.13 for data fetching
 - **UI Components**: 
-  - Radix UI primitives (Dialog, Tabs)
-  - Custom atomic components
+  - Radix UI primitives (Dialog, Tabs, Popover)
+  - Custom atomic components with CVA
   - Class Variance Authority for variants
-- **Icons**: Lucide React
-- **Forms**: React Hook Form ready (configured)
+- **Icons**: Lucide React 0.562.0
+- **Quality**: TypeScript strict mode, ESLint 8.57
 
 ## 📁 Project Structure
 

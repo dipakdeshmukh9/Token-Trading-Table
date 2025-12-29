@@ -15,8 +15,12 @@ interface TokensState {
   };
   allTokens: Token[];
 
-  // Sorting
-  sortConfig: SortConfig;
+  // Sorting - per category
+  sortConfigByCategory: {
+    "new-pairs": SortConfig;
+    "final-stretch": SortConfig;
+    migrated: SortConfig;
+  };
 
   // Loading states
   loading: {
@@ -45,9 +49,10 @@ const initialState: TokensState = {
     migrated: [],
   },
   allTokens: [],
-  sortConfig: {
-    field: "mc",
-    order: "desc",
+  sortConfigByCategory: {
+    "new-pairs": { field: "mc", order: "desc" },
+    "final-stretch": { field: "mc", order: "desc" },
+    migrated: { field: "mc", order: "desc" },
   },
   loading: {
     "new-pairs": false,
@@ -126,10 +131,17 @@ const tokensSlice = createSlice({
     },
 
     /**
-     * Set sort configuration
+     * Set sort configuration for a specific category
      */
-    setSortConfig(state: TokensState, action: PayloadAction<SortConfig>) {
-      state.sortConfig = action.payload;
+    setSortConfig(
+      state: TokensState,
+      action: PayloadAction<{
+        category: TokenCategory;
+        config: SortConfig;
+      }>
+    ) {
+      const { category, config } = action.payload;
+      state.sortConfigByCategory[category] = config;
     },
 
     /**

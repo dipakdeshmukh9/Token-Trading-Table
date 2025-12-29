@@ -135,7 +135,7 @@ export default function TokenDetailsModal() {
                 size="xs"
                 variant="ghost"
                 onClick={handleCopyAddress}
-                className="flex-shrink-0"
+                className="shrink-0"
               >
                 <Copy size={14} />
               </Button>

@@ -35,7 +35,7 @@ const Tabs = ({
       onValueChange={onValueChange}
       className={className}
     >
-      <RadixTabs.List className="flex items-center gap-2 border-b border-white/[0.06] bg-white/[0.01] p-2 rounded-t-lg">
+      <RadixTabs.List className="flex items-center gap-2 border-b border-white/6 bg-white/1 p-2 rounded-t-lg">
         {tabs.map((tab) => (
           <RadixTabs.Trigger
             key={tab.value}

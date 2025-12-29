@@ -11,7 +11,7 @@ const Card = React.forwardRef<
   <div
     ref={ref}
     className={clsx(
-      "rounded-lg border border-white/[0.06] bg-white/[0.02] backdrop-blur-sm",
+      "rounded-lg border border-white/6 bg-white/2 backdrop-blur-sm",
       className
     )}
     {...props}
@@ -30,7 +30,7 @@ const CardHeader = React.forwardRef<
   <div
     ref={ref}
     className={clsx(
-      "flex flex-col space-y-1.5 border-b border-white/[0.06] px-4 py-3",
+      "flex flex-col space-y-1.5 border-b border-white/6 px-4 py-3",
       className
     )}
     {...props}
@@ -80,7 +80,7 @@ const CardFooter = React.forwardRef<
   <div
     ref={ref}
     className={clsx(
-      "flex items-center border-t border-white/[0.06] px-4 py-3",
+      "flex items-center border-t border-white/6 px-4 py-3",
       className
     )}
     {...props}

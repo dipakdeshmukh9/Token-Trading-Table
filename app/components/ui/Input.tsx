@@ -34,8 +34,8 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
             ref={ref}
             type={type}
             className={clsx(
-              "w-full h-10 rounded-lg border border-white/10 bg-white/[0.02] px-3 text-sm text-white placeholder-white/30 transition-colors",
-              "focus:outline-none focus:border-white/30 focus:bg-white/[0.04]",
+              "w-full h-10 rounded-lg border border-white/10 bg-white/2 px-3 text-sm text-white placeholder-white/30 transition-colors",
+              "focus:outline-none focus:border-white/30 focus:bg-white/4",
               icon && "pl-10",
               error && "border-red-500/30 bg-red-500/5",
               className
