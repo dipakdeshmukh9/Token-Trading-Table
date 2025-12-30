@@ -1,44 +1,45 @@
 "use client";
 
-import React from "react";
+import React, { Component, ReactNode } from "react";
 
-type Props = {
-  children: React.ReactNode;
-  fallback?: (error: Error, reset: () => void) => React.ReactNode;
-};
+interface Props {
+  children: ReactNode;
+  fallback?: (error: Error, reset: () => void) => ReactNode;
+}
 
-type State = {
+interface State {
   hasError: boolean;
   error?: Error;
-};
+}
 
-export default class ErrorBoundary extends React.Component<Props, State> {
-  constructor(props: Props) {
-    super(props);
-    this.state = { hasError: false };
-  }
+export default class ErrorBoundary extends Component<Props, State> {
+  state: State = {
+    hasError: false,
+  };
 
   static getDerivedStateFromError(error: Error): State {
     return { hasError: true, error };
   }
 
-  componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
-    console.error("ErrorBoundary caught:", error, errorInfo);
+  componentDidCatch(error: Error, info: React.ErrorInfo) {
+    console.error("ErrorBoundary caught an error:", error, info);
   }
 
-  handleRetry = () => {
+  reset = () => {
     this.setState({ hasError: false, error: undefined });
   };
 
   render() {
     if (this.state.hasError) {
       return (
-        this.props.fallback?.(this.state.error!, this.handleRetry) ?? (
-          <div className="p-4 text-red-500">
-            <h2>Something went wrong.</h2>
+        this.props.fallback?.(this.state.error!, this.reset) || (
+          <div className="flex min-h-[200px] flex-col items-center justify-center gap-3">
+            <h2 className="text-lg font-semibold text-red-500">
+              Something went wrong
+            </h2>
             <button
-              onClick={this.handleRetry}
-              className="mt-2 rounded bg-black px-3 py-1 text-white"
+              onClick={this.reset}
+              className="rounded bg-blue-600 px-4 py-2 text-white"
             >
               Retry
             </button>
