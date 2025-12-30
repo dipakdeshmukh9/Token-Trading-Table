@@ -25,11 +25,11 @@ import {
   addNotification,
 } from "@/app/store/uiSlice";
 import type { RootState, AppDispatch } from "@/app/store/store";
-import { Token, TokenCategory, SortConfig } from "@/app/lib/types";
+import type { Token, TokenCategory, SortConfig } from "@/app/lib/types";
 
-/**
- * Hook for watchlist operations
- */
+/* =======================
+   WATCHLIST HOOK
+======================= */
 export const useWatchlist = () => {
   const dispatch = useDispatch<AppDispatch>();
   const watched = useSelector((state: RootState) => state.watchlist.tokens);
@@ -46,9 +46,9 @@ export const useWatchlist = () => {
   );
 };
 
-/**
- * Hook for tokens state and operations
- */
+/* =======================
+   TOKENS HOOK
+======================= */
 export const useTokens = () => {
   const dispatch = useDispatch<AppDispatch>();
   const tokens = useSelector((state: RootState) => state.tokens);
@@ -62,24 +62,38 @@ export const useTokens = () => {
       error: tokens.error,
       searchQuery: tokens.searchQuery,
       selectedCategory: tokens.selectedCategory,
+
       updatePrice: (tokenId: string, price: number, change: number) =>
-        dispatch(updateTokenPrice({ tokenId, price, priceChange24h: change })),
-      setSortConfigForCategory: (category: TokenCategory, config: SortConfig) =>
-        dispatch(setSortConfig({ category, config })),
+        dispatch(
+          updateTokenPrice({
+            tokenId,
+            price,
+            priceChange24h: change,
+          })
+        ),
+
+      setSortConfigForCategory: (
+        category: TokenCategory,
+        config: SortConfig
+      ) => dispatch(setSortConfig({ category, config })),
+
       setSearchQuery: (query: string) => dispatch(setSearchQuery(query)),
+
       setCategory: (category: TokenCategory) =>
         dispatch(setSelectedCategory(category)),
+
       fetchByCategory: (category: TokenCategory) =>
         dispatch(fetchTokensByCategory(category)),
+
       fetchAll: () => dispatch(fetchAllTokensThunk()),
     }),
     [tokens, dispatch]
   );
 };
 
-/**
- * Hook for UI state and operations
- */
+/* =======================
+   UI HOOK
+======================= */
 export const useUI = () => {
   const dispatch = useDispatch<AppDispatch>();
   const ui = useSelector((state: RootState) => state.ui);
@@ -94,25 +108,31 @@ export const useUI = () => {
       showChart: ui.showChart,
       notifications: ui.notifications,
 
-      // Modal operations
       openBuyModal: (tokenId: string) =>
         dispatch(openBuyModal(tokenId)),
       closeBuyModal: () => dispatch(closeBuyModal()),
+
       openSellModal: (tokenId: string) =>
         dispatch(openSellModal(tokenId)),
       closeSellModal: () => dispatch(closeSellModal()),
+
       openDetailsModal: (tokenId: string) =>
         dispatch(openDetailsModal(tokenId)),
       closeDetailsModal: () => dispatch(closeDetailsModal()),
 
-      // UI operations
-      setActivePopover: (id: string | undefined) =>
+      setActivePopover: (id?: string) =>
         dispatch(setActivePopover(id)),
-      setHoveredToken: (id: string | undefined) =>
+
+      setHoveredToken: (id?: string) =>
         dispatch(setHoveredToken(id)),
-      notify: (type: "success" | "error" | "info" | "warning", message: string) =>
-        dispatch(addNotification({ type, message })),
+
+      notify: (
+        type: "success" | "error" | "info" | "warning",
+        message: string
+      ) => dispatch(addNotification({ type, message })),
+
       toggleChart: () => dispatch({ type: "ui/toggleChart" }),
+
       setDisplayMode: (mode: "compact" | "detailed") =>
         dispatch({ type: "ui/setDisplayMode", payload: mode }),
     }),
@@ -120,59 +140,72 @@ export const useUI = () => {
   );
 };
 
-/**
- * Hook for sorting tokens
- */
-export const useSortedTokens = (tokens: Token[]): Token[] => {
-  const { sortConfig } = useTokens();
+/* =======================
+   SORT TOKENS (CATEGORY BASED)
+======================= */
+export const useSortedTokens = (
+  tokens: Token[],
+  category: "new-pairs" | "final-stretch" | "migrated"
+): Token[] => {
+  const { sortConfigByCategory } = useTokens();
+  const sortConfig = sortConfigByCategory[category];
 
   return useMemo(() => {
-    const sorted = [...tokens];
-    sorted.sort((a, b) => {
-      let aVal: any = a[sortConfig.field as keyof Token];
-      let bVal: any = b[sortConfig.field as keyof Token];
+    if (!sortConfig || tokens.length === 0) return tokens;
 
-      if (typeof aVal === "string") {
-        aVal = aVal.toLowerCase();
-        bVal = (bVal as string).toLowerCase();
+    // ✅ correct fields from SortConfig
+    const field = sortConfig.field as keyof Token;
+    const order = sortConfig.order;
+
+    return [...tokens].sort((a, b) => {
+      const aVal = a[field];
+      const bVal = b[field];
+
+      if (aVal == null || bVal == null) return 0;
+
+      if (typeof aVal === "number" && typeof bVal === "number") {
+        return order === "asc" ? aVal - bVal : bVal - aVal;
       }
 
-      if (aVal < bVal) {
-        return sortConfig.order === "asc" ? -1 : 1;
+      if (typeof aVal === "string" && typeof bVal === "string") {
+        return order === "asc"
+          ? aVal.localeCompare(bVal)
+          : bVal.localeCompare(aVal);
       }
-      if (aVal > bVal) {
-        return sortConfig.order === "asc" ? 1 : -1;
-      }
+
       return 0;
     });
-
-    return sorted;
   }, [tokens, sortConfig]);
 };
 
-/**
- * Hook for filtering tokens
- */
+
+
+/* =======================
+   FILTER TOKENS
+======================= */
 export const useFilteredTokens = (tokens: Token[]): Token[] => {
   const { searchQuery } = useTokens();
 
   return useMemo(() => {
     if (!searchQuery) return tokens;
 
-    const query = searchQuery.toLowerCase();
+    const q = searchQuery.toLowerCase();
     return tokens.filter(
-      (token) =>
-        token.name.toLowerCase().includes(query) ||
-        token.symbol.toLowerCase().includes(query)
+      (t) =>
+        t.name.toLowerCase().includes(q) ||
+        t.symbol.toLowerCase().includes(q)
     );
   }, [tokens, searchQuery]);
 };
 
-/**
- * Hook combining sorting and filtering
- */
-export const useProcessedTokens = (tokens: Token[]): Token[] => {
+/* =======================
+   FILTER + SORT (FINAL)
+======================= */
+export const useProcessedTokens = (
+  tokens: Token[],
+  category: "new-pairs" | "final-stretch" | "migrated"
+): Token[] => {
   const filtered = useFilteredTokens(tokens);
-  const sorted = useSortedTokens(filtered);
+  const sorted = useSortedTokens(filtered, category);
   return sorted;
 };

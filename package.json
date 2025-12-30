@@ -9,7 +9,7 @@
     "dev": "next dev",
     "build": "next build --no-lint",
     "start": "next start",
-    "lint": "eslint",
+    "lint": "next lint",
     "test:visual": "playwright test",
     "test": "npm run lint && npm run test:visual"
   },
