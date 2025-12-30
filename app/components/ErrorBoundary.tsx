@@ -1,45 +1,48 @@
 "use client";
 
-import React, { Component, ReactNode } from "react";
+import React from "react";
 
-interface Props {
-  children: ReactNode;
-  fallback?: (error: Error, reset: () => void) => ReactNode;
+interface ErrorBoundaryProps {
+  fallback?: (error: Error, reset: () => void) => React.ReactNode;
+  children: React.ReactNode;
 }
 
-interface State {
+interface ErrorBoundaryState {
   hasError: boolean;
-  error?: Error;
+  error: Error | null;
 }
 
-export default class ErrorBoundary extends Component<Props, State> {
-  state: State = {
-    hasError: false,
-  };
+export default class ErrorBoundary extends React.Component<
+  ErrorBoundaryProps,
+  ErrorBoundaryState
+> {
+  constructor(props: ErrorBoundaryProps) {
+    super(props);
+    this.state = { hasError: false, error: null };
+    this.handleRetry = this.handleRetry.bind(this);
+  }
 
-  static getDerivedStateFromError(error: Error): State {
+  static getDerivedStateFromError(error: Error) {
     return { hasError: true, error };
   }
 
   componentDidCatch(error: Error, info: React.ErrorInfo) {
-    console.error("ErrorBoundary caught an error:", error, info);
+    console.error("ErrorBoundary caught:", error, info);
   }
 
-  reset = () => {
-    this.setState({ hasError: false, error: undefined });
-  };
+  handleRetry() {
+    this.setState({ hasError: false, error: null });
+  }
 
   render() {
-    if (this.state.hasError) {
+    if (this.state.hasError && this.state.error) {
       return (
-        this.props.fallback?.(this.state.error!, this.reset) || (
-          <div className="flex min-h-[200px] flex-col items-center justify-center gap-3">
-            <h2 className="text-lg font-semibold text-red-500">
-              Something went wrong
-            </h2>
+        this.props.fallback?.(this.state.error, this.handleRetry) ?? (
+          <div className="p-4 text-red-500">
+            <h2>Something went wrong.</h2>
             <button
-              onClick={this.reset}
-              className="rounded bg-blue-600 px-4 py-2 text-white"
+              onClick={this.handleRetry}
+              className="mt-2 rounded bg-red-500 px-3 py-1 text-white"
             >
               Retry
             </button>
